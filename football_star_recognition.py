@@ -73,6 +73,7 @@ def train_and_test(data_dir):
         x = X_test[i]
         y = Y_test[i]
 
+        #It crashes here
         detected_face=trained_model.detectMultiScale(x)
 
         if detected_face:
