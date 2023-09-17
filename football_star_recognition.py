@@ -61,28 +61,38 @@ def train_and_test(data_dir):
     label_encoder=LabelEncoder()
     Ls=label_encoder.fit_transform(Ls)
     X_train,X_test,Y_train,Y_test=train_test_split(gray_images,Ls,test_size=0.25,random_state=6)
+
+    #Show the test dataset
+    '''
+    for im in X_test:
+        face=face_classifier.detectMultiScale(im)
+                
+        for f in face:
+            x,y,w,h=f
+            cv2.rectangle(im,(x,y),(x+w,y+h),(0,255,0),2)
+
+        cv2.imshow("Test",im)
+        cv2.waitKey(0)
+
+        print(f'Image no.{i}')
+        i+=1
+    '''
+    
     face_classifier=cv2.face.LBPHFaceRecognizer_create()
     face_classifier.train(X_train,Y_train)
-    face_classifier.save("FootBallStar.xml")
-
-    trues=0
-    fps=0
-    fns=0
-
-    trained_model = cv2.CascadeClassifier("FootBallStar.xml")
 
     for image,label in zip(X_test,Y_test):
         correct_images=0
 
         pred = face_classifier.predict(image)
 
-        print(pred)
+        #print(f'Predicted:{pred[0]} True Label: {label}')
 
-        if label == pred:
+        if label == pred[0]:
             correct_images+=1
-        
+
     print(f'Average Accuracy: {correct_images/len(X_test)*100}%')
-        
+    
     face_classifier.save("FootBallStar.xml")
     print("Training and Testing Finished")
 
@@ -91,7 +101,6 @@ def test():
     model=cv2.LBPHFaceRecognizer_create()
     model.read("FootBallStar.xml")
 
-    
 while choice!=3:
     print("Football Player Face Recognition")
     print("1. Train and Test Model")
@@ -107,6 +116,3 @@ while choice!=3:
     elif choice==3:
         print("Program terminated successfully")
         break
-      
-
-
