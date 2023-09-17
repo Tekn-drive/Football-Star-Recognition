@@ -80,6 +80,7 @@ def train_and_test(data_dir):
     
     face_classifier=cv2.face.LBPHFaceRecognizer_create()
     face_classifier.train(X_train,Y_train)
+    face_classifier.save("FootBallStar.xml")
 
     for image,label in zip(X_test,Y_test):
         correct_images=0
@@ -116,3 +117,6 @@ while choice!=3:
     elif choice==3:
         print("Program terminated successfully")
         break
+      
+
+
