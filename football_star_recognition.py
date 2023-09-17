@@ -39,6 +39,8 @@ def train_and_test(data_dir):
         im=cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
         gray_images.append(im)
 
+
+    #Use the code below to check the square highlighting makesure that the images are properly detected
     '''
     for im in images:
         gray_image=cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
@@ -69,30 +71,26 @@ def train_and_test(data_dir):
 
     trained_model = cv2.CascadeClassifier("FootBallStar.xml")
 
-    for i in range(len(X_test)):
-        x = X_test[i]
-        y = Y_test[i]
+    for image,label in zip(X_test,Y_test):
+        correct_images=0
 
-        #It crashes here
-        detected_face=trained_model.detectMultiScale(x)
+        pred = face_classifier.predict(image)
 
-        if detected_face:
-            if y in detected_face:
-                trues+=1
-            else:
-                fps+=1
-        else:
-            fns+=1
-    
-    precision = trues/(trues+fps)
-    recall = trues/ (trues + fns)
-    f1_score = 2*(precision*recall)/(precision+recall)
+        print(pred)
 
-    print(precision)
-    print(recall)
-    print(f1_score)
-
+        if label == pred:
+            correct_images+=1
+        
+    print(f'Average Accuracy: {correct_images/len(X_test)*100}%')
+        
+    face_classifier.save("FootBallStar.xml")
     print("Training and Testing Finished")
+
+def test():
+    model = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
+    model=cv2.LBPHFaceRecognizer_create()
+    model.read("FootBallStar.xml")
+
     
 while choice!=3:
     print("Football Player Face Recognition")
@@ -105,7 +103,7 @@ while choice!=3:
         train_and_test(data_dir)
         
     elif choice==2:
-        print("Predict")
+        test()
     elif choice==3:
         print("Program terminated successfully")
         break
