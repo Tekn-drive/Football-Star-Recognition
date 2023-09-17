@@ -4,23 +4,78 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 
-train=[]
-test=[]
-
-'''
-#Read folders here
-DATA_DIR='Dataset'
-labels=[folder for folder in os.listdir(DATA_DIR) if os.path.isdir(os.path.join(DATA_DIR,folder))]
-
-for label in labels:
-    label_path=os.path.join(DATA_DIR,label)
-
-    #Count the number of images in each label
-    images=len([file for file in os.listdir(label_path) if file.lower().endswith(('.jpg','jpeg','.png'))])
-    print(f'Label: {label} {images} images')
-'''
-
+train_dir='C:/Users/admin/OneDrive - Bina Nusantara/Binus/Semester 5/Computer Vision/LAB/Project/Dataset/train'
+test_dir='C:/Users/admin/OneDrive - Bina Nusantara/Binus/Semester 5/Computer Vision/LAB/Project/Dataset/test'
 choice=0
+
+def train_and_test(train_dir,test_dir):
+    train=[]
+    test=[]
+    face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+    train_labels=os.listdir(train_dir)
+    test_labels=os.listdir(test_dir)
+
+    #Getting images from the train folder
+    for label in train_labels:
+        if os.path.isdir(os.path.join(train_dir,label)):
+            temporary_folder=os.path.join(train_dir,label)
+            images=os.listdir(temporary_folder)
+            print(temporary_folder)
+
+            if images:
+                print("Images detected")
+                for image in images:
+                    train_image_path=os.path.join(temporary_folder,image)
+                    train.append(cv2.imread(train_image_path))
+            else:
+                print("No image detected")
+    
+    for label in test_labels:
+        if os.path.isdir(os.path.join(test_dir,label)):
+            temporary_folder=os.path.join(test_dir,label)
+            images=os.listdir(temporary_folder)
+            print(temporary_folder)
+
+        if images:
+            print("Images detected")
+            for image in images:
+                test_image_path=os.path.join(temporary_folder,image)
+                test.append(cv2.imread(test_image_path))
+        else:
+            print("No image detected")
+    
+    #Processes all image inside the train list
+    i=1
+    for t in train:
+        gray_image=cv2.cvtColor(t,cv2.COLOR_BGR2GRAY)
+        face=face_classifier.detectMultiScale(gray_image)
+                
+        for f in face:
+            x,y,w,h=f
+            cv2.rectangle(t,(x,y),(x+w,y+h),(0,255,0),2)
+
+        cv2.imshow("Train",t)
+        cv2.waitKey(0)
+
+        print(f'Train Image no.{i}')
+        i+=1
+
+    #Processes all image inside the test list
+    i=1
+    for t in test:
+        gray_image=cv2.cvtColor(t,cv2.COLOR_BGR2GRAY)
+        face=face_classifier.detectMultiScale(gray_image)
+            
+        for f in face:
+            x,y,w,h=f
+            cv2.rectangle(t,(x,y),(x+w,y+h),(0,255,0),2)
+        
+        cv2.imshow("Test",t)
+        cv2.waitKey(0)
+        
+        print(f'Test Image no.{i}')
+        i+=1
+
 while choice!=3:
     print("Football Player Face Recognition")
     print("1. Train and Test Model")
@@ -29,21 +84,8 @@ while choice!=3:
     choice = int(input(">> "))
 
     if choice==1:
-        #Train and test model here
-        face_classifier = cv2.CascadeClassifier(
-            cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-        )
+        train_and_test(train_dir,test_dir)
         
-        sample_image='C:/Users/admin/OneDrive - Bina Nusantara/Binus/Semester 5/Computer Vision/LAB/Project/Dataset/test/cristiano_ronaldo/16.jpg'
-        processed_image=cv2.imread(sample_image)
-        gray_image=cv2.cvtColor(processed_image,cv2.COLOR_BGR2GRAY)
-        faces=face_classifier.detectMultiScale(gray_image)
-        print(faces)
-        for face in faces:
-            x,y,w,h=face
-            cv2.rectangle(processed_image,(x,y),(x+w,y+h),(0,255,0),2)
-        cv2.imshow("Test",processed_image)
-        cv2.waitKey(0)
     elif choice==2:
         print("Predict")
     elif choice==3:
