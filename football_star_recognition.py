@@ -25,82 +25,53 @@ def train_and_test(data_dir):
             if scanned_images:
                 for image in scanned_images:
                     image_path=os.path.join(temporary_folder,image)
-                    images.append(cv2.imread(image_path))
-                    Ls.append(label)
+                    image=cv2.imread(image_path,0)
+                    faces=face_classifier.detectMultiScale(image,minNeighbors=30,scaleFactor=1.1)
+                    
+                    if(len(faces)<1):
+                        continue
+                    for (x,y,w,h) in faces:
+                        face=image[y:y+h,x:x+w]
+                        images.append(face)
+                        Ls.append(label)
             else:
                 print("No image detected")
     
     #Processes all image inside the list
     i=1
 
-    gray_images=[]
-
-    for im in images:
-        im=cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
-        gray_images.append(im)
-
-
-    #Use the code below to check the square highlighting makesure that the images are properly detected
-    '''
-    for im in images:
-        gray_image=cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
-        face=face_classifier.detectMultiScale(gray_image)
-                
-        for f in face:
-            x,y,w,h=f
-            cv2.rectangle(im,(x,y),(x+w,y+h),(0,255,0),2)
-
-        cv2.imshow("Sample",im)
-        cv2.waitKey(0)
-
-        print(f'Image no.{i}')
-        i+=1
-    '''
-
     Ls=np.array(Ls)
     label_encoder=LabelEncoder()
     Ls=label_encoder.fit_transform(Ls)
-    X_train,X_test,Y_train,Y_test=train_test_split(gray_images,Ls,test_size=0.25,random_state=6)
+    X_train,X_test,Y_train,Y_test=train_test_split(images,Ls,test_size=0.25,random_state=69)
+    X_train_resized=[cv2.resize(image,(48,48),interpolation=cv2.INTER_AREA)for image in X_train]
+    X_test_resized=[cv2.resize(image,(48,48),interpolation=cv2.INTER_AREA)for image in X_test]
 
-    #Show the test dataset
-    '''
-    for im in X_test:
-        face=face_classifier.detectMultiScale(im)
-                
-        for f in face:
-            x,y,w,h=f
-            cv2.rectangle(im,(x,y),(x+w,y+h),(0,255,0),2)
-
-        cv2.imshow("Test",im)
-        cv2.waitKey(0)
-
-        print(f'Image no.{i}')
-        i+=1
-    '''
-    
     face_classifier=cv2.face.LBPHFaceRecognizer_create()
-    face_classifier.train(X_train,Y_train)
-    face_classifier.save("FootBallStar.xml")
+    face_classifier.train(X_train_resized,Y_train)
 
-    for image,label in zip(X_test,Y_test):
-        correct_images=0
+    correct_images=0
+
+    for image,label in zip(X_test_resized,Y_test):
 
         pred = face_classifier.predict(image)
+        pred = pred[0]
 
-        #print(f'Predicted:{pred[0]} True Label: {label}')
-
-        if label == pred[0]:
+        if pred == label:
             correct_images+=1
 
-    print(f'Average Accuracy: {correct_images/len(X_test)*100}%')
-    
+    print(f'Average Accuracy: {correct_images/len(X_test_resized)*100}%')
+    print(f'{correct_images} images correct out of {len(X_test_resized)} images')
+
     face_classifier.save("FootBallStar.xml")
     print("Training and Testing Finished")
 
 def test():
-    model = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
-    model=cv2.LBPHFaceRecognizer_create()
-    model.read("FootBallStar.xml")
+    model = cv2.CascadeClassifier("FootBallStar.xml")
+    absolute_file_path=input("Input absolute path for image to predict >> ")
+    image=cv2.imread(absolute_file_path)
+    pred = model.predict(image)
+    print(pred[0])
 
 while choice!=3:
     print("Football Player Face Recognition")
@@ -117,6 +88,3 @@ while choice!=3:
     elif choice==3:
         print("Program terminated successfully")
         break
-      
-
-
