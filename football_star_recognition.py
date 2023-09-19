@@ -1,19 +1,16 @@
 import cv2
-import matplotlib
 import numpy as np
 import os
-import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
-data_dir='C:/Users/admin/OneDrive - Bina Nusantara/Binus/Semester 5/Computer Vision/LAB/Project/Dataset/'
+data_dir='Dataset'
 choice=0
 
-def train_and_test(data_dir):
+def train_and_test(data_dir,face_classifier):
     print("Training and Testing")
     images=[]
     Ls=[]
-    face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
     labels=os.listdir(data_dir)
 
     #Getting images from the dataset folder
@@ -67,7 +64,7 @@ def train_and_test(data_dir):
     face_classifier.save("FootBallStar.xml")
     print("Training and Testing Finished")
 
-def test():
+def test(face_classifier):
     labels={0:"christiano_ronaldo",
             1:"erling_haaland",
             2:"jorginho",
@@ -79,8 +76,7 @@ def test():
             8:"robert_lewandoski",
             9:"rumelu_lukaku"
             }
-            
-    face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+
     model = cv2.face.LBPHFaceRecognizer_create()
     model.read("FootBallStar.xml")
     absolute_file_path=input("Input absolute path for image to predict >> ")
@@ -99,6 +95,7 @@ def test():
         cv2.waitKey(0)
 
 while choice!=3:
+    face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
     print("Football Player Face Recognition")
     print("1. Train and Test Model")
     print("2. Predict")
@@ -106,10 +103,10 @@ while choice!=3:
     choice = int(input(">> "))
 
     if choice==1:
-        train_and_test(data_dir)
+        train_and_test(data_dir,face_classifier)
         
     elif choice==2:
-        test()
+        test(face_classifier)
     elif choice==3:
         print("Program terminated successfully")
         break
