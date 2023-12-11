@@ -29,8 +29,8 @@ def train_and_test(data_dir,face_classifier):
                         continue
                     for (x,y,w,h) in faces:
                         face=image[y:y+h,x:x+w]
-                        images.append(face)
-                        Ls.append(label)
+                        images.append(face)     
+                        Ls.append(label)                    
             else:
                 print("No image detected")
     
@@ -82,13 +82,13 @@ def test(face_classifier):
     absolute_file_path=input("Input absolute path for image to predict >> ")
     image=cv2.imread(absolute_file_path)
     gray_image=cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
-    faces=face_classifier.detectMultiScale(gray_image,minNeighbors=30,scaleFactor=1.1)
+    faces=face_classifier.detectMultiScale(gray_image,minNeighbors=5,scaleFactor=1.2)
 
     for (x,y,w,h) in faces:
         face = gray_image[y:y+h,x:x+w]
-        prediction=model.predict(face)
-        predicted_label=labels[prediction[0]]
-        confidence=round(prediction[1],2)
+        res,confidence=model.predict(face)
+        predicted_label=labels[res]
+        confidence=round(confidence,2)
         cv2.rectangle(image,(x,y),(x+w,y+h),(0,255,0),2)
         cv2.putText(image,f"{predicted_label} : {confidence}%",(x,y-10),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,255,0),2)
         cv2.imshow("Predicted Image",image)
