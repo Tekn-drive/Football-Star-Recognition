@@ -65,7 +65,7 @@ def train_and_test(data_dir,face_classifier):
     print("Training and Testing Finished")
 
 def test(face_classifier):
-    labels={0:"cristiano_ronaldo",
+    labels={0:"christiano_ronaldo",
             1:"erling_haaland",
             2:"jorginho",
             3:"karim_benzema",
