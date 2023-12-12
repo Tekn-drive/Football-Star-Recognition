@@ -23,7 +23,7 @@ def train_and_test(data_dir,face_classifier):
                 for image in scanned_images:
                     image_path=os.path.join(temporary_folder,image)
                     image=cv2.imread(image_path,0)
-                    faces=face_classifier.detectMultiScale(image,minNeighbors=30,scaleFactor=1.1)
+                    faces=face_classifier.detectMultiScale(image,minNeighbors=5,scaleFactor=1.2)
                     
                     if(len(faces)<1):
                         continue
@@ -40,13 +40,13 @@ def train_and_test(data_dir,face_classifier):
     Ls=label_encoder.fit_transform(Ls)
     resized_images=[]
 
-    for image in images:
-        image = cv2.resize(image,(48,48),interpolation=cv2.INTER_AREA)
-        resized_images.append(image)
+    #for image in images:
+        #image = cv2.resize(image,(48,48),interpolation=cv2.INTER_AREA)
+        #resized_images.append(image)
 
-    X_train,X_test,Y_train,Y_test=train_test_split(resized_images,Ls,test_size=0.25,random_state=69)
+    X_train,X_test,Y_train,Y_test=train_test_split(images,Ls,test_size=0.25,random_state=69)
     face_classifier=cv2.face.LBPHFaceRecognizer_create()
-    face_classifier.train(X_train,Y_train)
+    face_classifier.train(images,Ls)
 
     correct_images=0
 
@@ -88,7 +88,7 @@ def test(face_classifier):
         face = gray_image[y:y+h,x:x+w]
         res,confidence=model.predict(face)
         predicted_label=labels[res]
-        confidence=round(confidence,2)
+        confidence=round(100-confidence,2)
         cv2.rectangle(image,(x,y),(x+w,y+h),(0,255,0),2)
         cv2.putText(image,f"{predicted_label} : {confidence}%",(x,y-10),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,255,0),2)
         cv2.imshow("Predicted Image",image)
