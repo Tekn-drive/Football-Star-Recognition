@@ -23,25 +23,30 @@ def train_and_test(data_dir,face_classifier):
                 for image in scanned_images:
                     image_path=os.path.join(temporary_folder,image)
                     image=cv2.imread(image_path,0)
-                    faces=face_classifier.detectMultiScale(image,minNeighbors=30,scaleFactor=1.1)
+                    faces=face_classifier.detectMultiScale(image,minNeighbors=5,scaleFactor=1.15)
                     
                     if(len(faces)<1):
                         continue
                     for (x,y,w,h) in faces:
                         face=image[y:y+h,x:x+w]
+                        face = cv2.equalizeHist(face)
+                        face = cv2.fastNlMeansDenoising(face, 5, None, 7, 21)
+                        face = cv2.bilateralFilter(face,5,100,100)
+                        face = cv2.GaussianBlur(face, (5,5), 0)
                         images.append(face)     
                         Ls.append(label)                    
             else:
                 print("No image detected")
     
     #Processes all image inside the list
+    images = np.array(images, dtype='object')
     Ls=np.array(Ls)
     label_encoder=LabelEncoder()
     Ls=label_encoder.fit_transform(Ls)
     resized_images=[]
 
     for image in images:
-        image = cv2.resize(image,(48,48),interpolation=cv2.INTER_AREA)
+        image = cv2.resize(image,(90,90),interpolation=cv2.INTER_AREA)
         resized_images.append(image)
 
     X_train,X_test,Y_train,Y_test=train_test_split(resized_images,Ls,test_size=0.25,random_state=69)
@@ -57,12 +62,13 @@ def train_and_test(data_dir,face_classifier):
 
         if pred == label:
             correct_images+=1
-
-    print(f'Average Accuracy: {correct_images/len(X_test)*100}%')
-    print(f'{correct_images} images correct out of {len(X_test)} images')
-
-    face_classifier.save("FootBallStar.xml")
+            
     print("Training and Testing Finished")
+    print(f'Average Accuracy  :  {correct_images/len(X_test)*100}%')
+    print(f'{correct_images} out of {len(X_test)} images are correct')
+    face_classifier.save("FootBallStar.xml")
+    print("Press enter to continue...")
+    input()
 
 def test(face_classifier):
     labels={0:"cristiano_ronaldo",
@@ -78,21 +84,32 @@ def test(face_classifier):
             }
 
     model = cv2.face.LBPHFaceRecognizer_create()
-    model.read("FootBallStar.xml")
-    absolute_file_path=input("Input absolute path for image to predict >> ")
-    image=cv2.imread(absolute_file_path)
-    gray_image=cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
-    faces=face_classifier.detectMultiScale(gray_image,minNeighbors=5,scaleFactor=1.2)
+    model_path = "FootBallStar.xml"
 
-    for (x,y,w,h) in faces:
-        face = gray_image[y:y+h,x:x+w]
-        res,confidence=model.predict(face)
-        predicted_label=labels[res]
-        confidence=round(confidence,2)
-        cv2.rectangle(image,(x,y),(x+w,y+h),(0,255,0),2)
-        cv2.putText(image,f"{predicted_label} : {confidence}%",(x,y-10),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,255,0),2)
-        cv2.imshow("Predicted Image",image)
-        cv2.waitKey(0)
+    if os.path.exists(model_path):
+        model.read("FootBallStar.xml")
+        absolute_file_path=input("Input absolute path for image to predict >> ")
+        image=cv2.imread(absolute_file_path)
+        gray_image=cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
+        faces=face_classifier.detectMultiScale(gray_image,minNeighbors=5,scaleFactor=1.15)
+
+        for (x,y,w,h) in faces:
+            face = gray_image[y:y+h,x:x+w]
+            face = cv2.equalizeHist(face)
+            face = cv2.fastNlMeansDenoising(face, 5, None, 7, 21)
+            face = cv2.bilateralFilter(face,5,100,100)
+            face = cv2.GaussianBlur(face, (5,5), 0)
+            face = cv2.resize(face,(90,90), interpolation = cv2.INTER_AREA)
+            res,confidence=model.predict(face)
+            predicted_label=labels[res]
+            accuracy=abs(round(100-confidence,2))
+            cv2.rectangle(image,(x,y),(x+w,y+h),(0,255,0),2)
+            cv2.putText(image,f"{predicted_label} : {accuracy}%",(x,y-10),cv2.FONT_HERSHEY_SIMPLEX,0.5,(0,255,0),2)
+            cv2.imshow("Predicted Image",image)
+            cv2.waitKey(0)
+    else:
+        print("ERROR MODEL NOT FOUND!!")
+        return
 
 while choice!=3:
     face_classifier = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
@@ -103,8 +120,7 @@ while choice!=3:
     choice = int(input(">> "))
 
     if choice==1:
-        train_and_test(data_dir,face_classifier)
-        
+        train_and_test(data_dir,face_classifier)  
     elif choice==2:
         test(face_classifier)
     elif choice==3:
